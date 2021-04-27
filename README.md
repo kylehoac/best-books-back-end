@@ -14,7 +14,7 @@ Backend server for our can of books application
 
 ## Architecture
 
-- Javascript, express, cors, dotenv,axios, nodemon, MongoDB
+- Javascript, express, cors, dotenv,axios, nodemon, MongoDB, Mongoose
 
 ## Change Log
 
