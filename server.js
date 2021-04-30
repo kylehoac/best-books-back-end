@@ -7,6 +7,8 @@ const axios = require('axios');
 const app = express();
 app.use(cors());
 
+app.use(express.json())
+
 // MongoDb / Mongoose 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/books', {useNewUrlParser: true, useUnifiedTopology: true});
@@ -61,18 +63,18 @@ app.get('/books', getSchemasDB)
 app.get('*', errorHandler)
 app.get('/', proofOfLife)
 app.post('/books', postHandler)
-app.get(express.json())
 
 // Route handlers
 async function postHandler(request, response) {
-    const { name, description, status } = request.body;
-    const { email } = request.query;
+    console.log(request.body);
+    const { name, description, status } = request.body.newBook;
+    const { email } = request.body;
     console.log({email});
     await User.find({ email }, (err, users) => {
         if (users.length){
             const user = users[0];
 
-            const currentBooks = users.books;
+            const currentBooks = user.books;
 
             const newBooks = {name: name, description: description, status: status};
 
