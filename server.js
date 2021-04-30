@@ -63,8 +63,38 @@ app.get('/books', getSchemasDB)
 app.get('*', errorHandler)
 app.get('/', proofOfLife)
 app.post('/books', postHandler)
+app.put('/books/:index', updateBook)
+app.delete('/books/:index', deleteBook)
 
 // Route handlers
+async function deleteBook (request, response){
+    const index = Number(request.params.index);
+    const email = request.query.email;
+
+    await User.find({email}, (err, users) => {
+        if (err) console.error(err);
+        const user = users[0];
+        user.books.filter((_, i) => i !== index);
+        user.save();
+        response.send('Boy Bye!')
+    })
+}
+
+    async function updateBook(request, response){
+        const index = Number(request.params.index);
+        const newBook = request.body.newBook;
+        const email = request.query.email;
+    
+        await User.find({email}, (err, users) => {
+            if (err) console.error(err);
+            const user = users[0];
+            user.books.splice(index, 1, newBook)
+            user.save();
+            response.send('You Did It!')
+        })
+    }
+
+
 async function postHandler(request, response) {
     console.log(request.body);
     const { name, description, status } = request.body.newBook;
