@@ -6,11 +6,10 @@ const cors = require('cors');
 const axios = require('axios');
 const app = express();
 app.use(cors());
-const PORT = process.env.PORT || 3003
-app.listen(PORT, () => console.log(`listening on port ${PORT}`));
-//
-//components
-const User = require('./models/schemas.js');
+
+app.use(express.json())
+
+// MongoDb / Mongoose 
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/books', {useNewUrlParser: true, useUnifiedTopology: true});
 
@@ -19,6 +18,9 @@ db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function() {
   console.log('we\'re connected!');
 });
+
+// User instances
+const User = require('./models/schemas.js');
 
 const book1 = new User({
     email: 'dionjwa@gmail.com',
@@ -36,11 +38,57 @@ const book1 = new User({
         }
     ]
 });
-book1.save();
-// console.log({ book1 });
-//
-//apps
+
+const book2 = new User({
+    email: 'hoackyle@gmail.com',
+    books: [
+        {name: 'potato',
+        description: 'potato book',
+        status: 'baked'},
+        {name: 'banana',
+        description: 'banana book',
+        status: 'peeled'
+        },
+        {name: 'bingo',
+        description: 'dawg',
+        status: 'Farm Animal'
+        }
+    ]
+});
+// book1.save();
+// book2.save();
+
+// Routes
 app.get('/books', getSchemasDB)
+app.get('*', errorHandler)
+app.get('/', proofOfLife)
+app.post('/books', postHandler)
+
+// Route handlers
+async function postHandler(request, response) {
+    console.log(request.body);
+    const { name, description, status } = request.body.newBook;
+    const { email } = request.body;
+    console.log({email});
+    await User.find({ email }, (err, users) => {
+        if (users.length){
+            const user = users[0];
+
+            const currentBooks = user.books;
+
+            const newBooks = {name: name, description: description, status: status};
+
+            currentBooks.push(newBooks);
+
+            user.save();
+
+            response.send(user.books);
+        } else {
+            response.send('no users found with that name')
+        }
+    }
+)}
+
 function getSchemasDB(request, response) {
     const email = request.query.email;
     console.log(email);
@@ -51,12 +99,14 @@ function getSchemasDB(request, response) {
       }) 
 }
 
-app.get('*', (request, response) => {
+function errorHandler(request, response) {
     response.status(400, 404, 500).send('Error: Book not Found');
-});
-//
-//POL
-app.get('/', (request, response) => {
+}
+
+function proofOfLife(request, response) {
     response.send('hi');
-})
-//
+}
+
+// Port and listener
+const PORT = process.env.PORT || 3003
+app.listen(PORT, () => console.log(`listening on port ${PORT}`));
